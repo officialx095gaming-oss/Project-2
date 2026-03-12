@@ -1,84 +1,326 @@
-import customtkinter as ctk
-import requests
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>index.ai | Solaris Core</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                fontFamily: {
+                    sans: ['"Outfit"', 'sans-serif'],
+                    mono: ['"JetBrains Mono"', 'monospace'],
+                },
+                extend: {
+                    colors: {
+                        solar: {
+                            base: '#000000',
+                            panel: '#0a0a0a',
+                            accent: '#ff6b00',
+                            accentHover: '#ff8533',
+                            muted: '#1a1a1a',
+                            text: '#ffffff'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
-# Theme Configuration
-ORANGE = "#FF8C00"
-BLACK = "#1A1A1A"
-WHITE = "#FFFFFF"
-GRAY = "#2B2B2B"
+    <style>
+        /* Base Environment */
+        html, body { 
+            background-color: #000000; 
+            color: #ffffff;
+            scroll-behavior: smooth;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-class DevilKingAI(ctk.CTk):
-    def __init__(self):
-        super().__init__()
+        /* Neural Pulse Animation */
+        .pulse-ring {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+        .pulse-ring div {
+            position: absolute;
+            border: 2px solid #ff6b00;
+            opacity: 1;
+            border-radius: 50%;
+            animation: pulse-out 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+        }
+        .pulse-ring div:nth-child(2) { animation-delay: -1s; }
+        @keyframes pulse-out {
+            0% { width: 0; height: 0; opacity: 1; top: 60px; left: 60px; }
+            100% { width: 120px; height: 120px; opacity: 0; top: 0; left: 0; }
+        }
 
-        self.title("DKS | Hero Org Terminal")
-        self.geometry("600x700")
-        self.configure(fg_color=BLACK)
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: #000000; }
+        ::-webkit-scrollbar-thumb { background: #ff6b00; border-radius: 10px; }
 
-        # UI Setup
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
+        /* Perfect UI Containers */
+        .glass-dark {
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 107, 0, 0.1);
+        }
 
-        # --- Header ---
-        self.header = ctk.CTkLabel(self, text="AI INTERFACE SYSTEM", font=("Orbitron", 20, "bold"), text_color=ORANGE)
-        self.header.grid(row=0, column=0, pady=20)
+        .user-msg {
+            background: #ffffff;
+            color: #000000;
+            border-radius: 20px 20px 4px 20px;
+        }
 
-        # --- API Key Input ---
-        self.api_frame = ctk.CTkFrame(self, fg_color=GRAY, corner_radius=10)
-        self.api_frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        .ai-msg {
+            background: #111111;
+            color: #ffffff;
+            border: 1px solid #1a1a1a;
+            border-radius: 20px 20px 20px 4px;
+        }
+
+        .orange-glow {
+            text-shadow: 0 0 15px rgba(255, 107, 0, 0.5);
+        }
+
+        /* Markdown Overrides */
+        .prose pre { background: #000000 !important; border: 1px solid #222; }
+        .prose code { color: #ff6b00; }
+        .prose strong { color: #ff6b00; }
+    </style>
+</head>
+<body class="antialiased m-0 p-0 overflow-hidden">
+
+    <div id="loading" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black">
+        <div class="pulse-ring"><div></div><div></div></div>
+        <div class="mt-10 text-center">
+            <h2 class="text-white font-mono tracking-[0.4em] text-xs uppercase animate-pulse">Synchronizing Solaris Core</h2>
+            <p class="text-solar-accent text-[10px] mt-2 font-mono">LINK ESTABLISHED // INDEX.AI</p>
+        </div>
+    </div>
+
+    <div id="app" class="hidden h-[100dvh] w-full flex-col lg:flex-row overflow-hidden">
         
-        self.api_label = ctk.CTkLabel(self.api_frame, text="CUSTOM API KEY:", text_color=WHITE, font=("Arial", 12, "bold"))
-        self.api_label.pack(side="left", padx=10, pady=5)
-        
-        self.api_entry = ctk.CTkEntry(self.api_frame, placeholder_text="Enter your Key here...", 
-                                      fg_color=BLACK, text_color=ORANGE, border_color=ORANGE, show="*")
-        self.api_entry.pack(side="right", fill="x", expand=True, padx=10, pady=5)
+        <aside id="sidebar" class="fixed lg:relative inset-y-0 left-0 w-72 bg-black border-r border-orange-900/20 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 z-40 flex flex-col">
+            <div class="p-6 border-b border-orange-900/10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-solar-accent flex items-center justify-center rounded-lg shadow-[0_0_20px_rgba(255,107,0,0.3)]">
+                        <span class="text-black font-bold text-xl">X</span>
+                    </div>
+                    <div>
+                        <p class="text-white font-bold leading-none tracking-tight">INDEX<span class="text-solar-accent">.AI</span></p>
+                        <p class="text-[10px] text-gray-500 font-mono mt-1">SOLARIS-V2</p>
+                    </div>
+                </div>
+            </div>
 
-        # --- Chat Display ---
-        self.chat_display = ctk.CTkTextbox(self, fg_color=GRAY, text_color=WHITE, font=("Arial", 14), 
-                                           border_color=ORANGE, border_width=1, corner_radius=10)
-        self.chat_display.grid(row=1, column=0, padx=20, pady=10, sticky="nsew")
-        self.chat_display.configure(state="disabled")
+            <div class="p-4 flex-1 overflow-y-auto hide-scrollbar" id="chat-list">
+                </div>
 
-        # --- User Input ---
-        self.input_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.input_frame.grid(row=3, column=0, padx=20, pady=20, sticky="ew")
-        self.input_frame.grid_columnconfigure(0, weight=1)
+            <div class="p-4 border-t border-orange-900/10 space-y-2">
+                <button onclick="createNewChat()" class="w-full py-3 bg-white text-black rounded-xl font-bold text-sm hover:bg-gray-200 transition-all">NEW SESSION</button>
+                <button onclick="openSettings()" class="w-full py-3 border border-orange-900/30 text-white rounded-xl font-medium text-xs hover:bg-white/5 transition-all">SYSTEM CONFIG</button>
+            </div>
+        </aside>
 
-        self.user_input = ctk.CTkEntry(self.input_frame, placeholder_text="Command here...", 
-                                       fg_color=GRAY, border_color=WHITE, text_color=WHITE)
-        self.user_input.grid(row=0, column=0, sticky="ew", padx=(0, 10))
-        self.user_input.bind("<Return>", lambda event: self.process_request())
+        <main class="flex-1 flex flex-col h-[100dvh] bg-black relative">
+            <header class="p-4 flex items-center justify-between lg:justify-start gap-4 glass-dark z-30">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke-width="2" stroke-linecap="round"/></svg></button>
+                <div>
+                    <h2 id="chat-header-title" class="text-white font-semibold text-sm orange-glow tracking-wide uppercase">Unit Active</h2>
+                    <p id="chat-header-model" class="text-[10px] text-gray-500 font-mono uppercase"></p>
+                </div>
+            </header>
 
-        self.send_btn = ctk.CTkButton(self.input_frame, text="EXECUTE", fg_color=ORANGE, 
-                                      hover_color="#CC7000", text_color=BLACK, font=("Arial", 12, "bold"),
-                                      command=self.process_request)
-        self.send_btn.grid(row=0, column=1)
+            <div id="messages-container" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 pb-32">
+                </div>
 
-    def log_message(self, sender, message):
-        self.chat_display.configure(state="normal")
-        color = ORANGE if sender == "AI" else WHITE
-        self.chat_display.insert("end", f"{sender}: ", (sender,))
-        self.chat_display.insert("end", f"{message}\n\n")
-        self.chat_display.configure(state="disabled")
-        self.chat_display.see("end")
+            <div class="absolute bottom-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-t from-black via-black/90 to-transparent">
+                <div class="max-w-4xl mx-auto flex items-end gap-3 glass-dark p-2 rounded-2xl border border-orange-900/20 focus-within:border-orange-500/50 transition-all">
+                    <textarea id="user-input" rows="1" class="flex-1 bg-transparent border-none text-white p-3 outline-none resize-none placeholder-gray-600 text-sm font-medium" placeholder="Awaiting command, Operator..." oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+                    <button id="send-btn" onclick="sendMessage()" class="p-3 bg-solar-accent text-black rounded-xl hover:scale-105 transition-transform">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
 
-    def process_request(self):
-        prompt = self.user_input.get()
-        api_key = self.api_entry.get()
+    <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/95 hidden backdrop-blur-xl p-4">
+        <div class="w-full max-w-md bg-solar-panel border border-orange-900/30 rounded-3xl p-6 shadow-2xl">
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2 italic">
+                <span class="w-2 h-6 bg-solar-accent"></span> SYSTEM OVERRIDE
+            </h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Access Key</label>
+                    <input type="password" id="settings-key" class="w-full mt-1 bg-black border border-white/10 rounded-xl p-3 text-white outline-none focus:border-solar-accent transition-all">
+                </div>
+                <div>
+                    <label class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Neural Model</label>
+                    <input type="text" id="settings-model" class="w-full mt-1 bg-black border border-white/10 rounded-xl p-3 text-white outline-none focus:border-solar-accent transition-all">
+                </div>
+                <div>
+                    <label class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Core Directives</label>
+                    <textarea id="settings-prompt" rows="3" class="w-full mt-1 bg-black border border-white/10 rounded-xl p-3 text-white outline-none focus:border-solar-accent transition-all resize-none"></textarea>
+                </div>
+            </div>
+            <div class="mt-8 flex gap-3">
+                <button onclick="closeSettings()" class="flex-1 py-3 text-gray-400 font-bold text-xs uppercase hover:text-white transition-all">Abort</button>
+                <button onclick="saveSettings()" class="flex-1 py-3 bg-solar-accent text-black rounded-xl font-bold text-xs uppercase">Confirm</button>
+            </div>
+        </div>
+    </div>
 
-        if not prompt: return
-        if not api_key:
-            self.log_message("SYSTEM", "⚠️ Error: Custom API Key is missing.")
-            return
+    <script>
+        // --- Core Logic ---
+        let state = {
+            chats: [], currentChatId: null,
+            settings: { apiKey: '', model: 'deepseek/deepseek-r1:free', systemPrompt: "You are index.ai. Tone: Efficient, Professional, Orange-themed. Call user 'Operator'." },
+            isStreaming: false
+        };
 
-        self.log_message("USER", prompt)
-        self.user_input.delete(0, "end")
-        
-        # Placeholder for API Logic (e.g., OpenAI or Anthropic)
-        # You would insert your request logic here using 'api_key'
-        self.log_message("AI", "Interface synchronized. System ready for deployment, Boss. 🟠")
+        function init() {
+            const saved = localStorage.getItem('index_ai_solar');
+            if (saved) {
+                const p = JSON.parse(saved);
+                state.chats = p.chats || [];
+                state.settings = {...state.settings, ...p.settings};
+                state.currentChatId = p.currentChatId;
+            }
+            if (state.chats.length === 0) createNewChat();
+            else render();
 
-if __name__ == "__main__":
-    app = DevilKingAI()
-    app.mainloop()
+            setTimeout(() => {
+                document.getElementById('loading').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('app').classList.remove('hidden');
+                    document.getElementById('app').classList.add('flex');
+                }, 1000);
+            }, 1500);
+        }
+
+        function save() { localStorage.setItem('index_ai_solar', JSON.stringify(state)); }
+
+        function render() {
+            const list = document.getElementById('chat-list');
+            list.innerHTML = '';
+            state.chats.forEach(c => {
+                const active = c.id === state.currentChatId;
+                list.innerHTML += `<div onclick="switchChat('${c.id}')" class="p-4 mb-2 rounded-xl cursor-pointer border transition-all ${active ? 'bg-solar-accent text-black border-solar-accent font-bold' : 'text-gray-400 border-white/5 hover:border-orange-500/30'}">
+                    <p class="truncate text-xs">${c.title}</p>
+                </div>`;
+            });
+            renderChat();
+            document.getElementById('chat-header-model').innerText = state.settings.model;
+        }
+
+        function renderChat() {
+            const container = document.getElementById('messages-container');
+            const chat = state.chats.find(c => c.id === state.currentChatId);
+            container.innerHTML = '';
+            if (chat) chat.messages.forEach(m => addMsg(m.role, m.content));
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function addMsg(role, content) {
+            const container = document.getElementById('messages-container');
+            const div = document.createElement('div');
+            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+            const inner = document.createElement('div');
+            inner.className = `p-4 max-w-[85%] text-sm ${role === 'user' ? 'user-msg' : 'ai-msg prose prose-invert'}`;
+            inner.innerHTML = role === 'user' ? content : marked.parse(content);
+            div.appendChild(inner);
+            container.appendChild(div);
+            return inner;
+        }
+
+        async function sendMessage() {
+            if (state.isStreaming) return;
+            const input = document.getElementById('user-input');
+            const val = input.value.trim();
+            if (!val || !state.settings.apiKey) return;
+
+            const chat = state.chats.find(c => c.id === state.currentChatId);
+            chat.messages.push({role: 'user', content: val});
+            if (chat.title === 'NEW SESSION') chat.title = val.substring(0, 20);
+            
+            input.value = '';
+            render();
+            state.isStreaming = true;
+            
+            const aiBubble = addMsg('assistant', '...');
+            let fullAi = "";
+
+            try {
+                const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {'Authorization': `Bearer ${state.settings.apiKey}`, 'Content-Type': 'application/json'},
+                    body: JSON.stringify({model: state.settings.model, messages: [{role: 'system', content: state.settings.systemPrompt}, ...chat.messages], stream: true})
+                });
+                
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                while(true) {
+                    const {done, value} = await reader.read();
+                    if(done) break;
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
+                    for(let l of lines) {
+                        const data = l.replace('data: ', '');
+                        if(data === '[DONE]') break;
+                        try {
+                            const json = JSON.parse(data);
+                            const text = json.choices[0].delta.content || "";
+                            fullAi += text;
+                            aiBubble.innerHTML = marked.parse(fullAi);
+                        } catch(e){}
+                    }
+                }
+                chat.messages.push({role: 'assistant', content: fullAi});
+                save();
+            } catch(e) { 
+                aiBubble.innerHTML = "ERROR: LINK SEVERED."; 
+            } finally {
+                state.isStreaming = false;
+            }
+        }
+
+        // --- Helpers ---
+        function createNewChat() {
+            const id = Date.now().toString();
+            state.chats.unshift({id, title: 'NEW SESSION', messages: []});
+            state.currentChatId = id;
+            save(); render();
+        }
+        function switchChat(id) { state.currentChatId = id; save(); render(); }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
+        function openSettings() { 
+            document.getElementById('settings-key').value = state.settings.apiKey;
+            document.getElementById('settings-model').value = state.settings.model;
+            document.getElementById('settings-prompt').value = state.settings.systemPrompt;
+            document.getElementById('settings-modal').classList.remove('hidden'); 
+        }
+        function closeSettings() { document.getElementById('settings-modal').classList.add('hidden'); }
+        function saveSettings() {
+            state.settings.apiKey = document.getElementById('settings-key').value;
+            state.settings.model = document.getElementById('settings-model').value;
+            state.settings.systemPrompt = document.getElementById('settings-prompt').value;
+            save(); closeSettings(); render();
+        }
+        function autoResize(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+        function handleKey(e) { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
