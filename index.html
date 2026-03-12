@@ -1,0 +1,84 @@
+import customtkinter as ctk
+import requests
+
+# Theme Configuration
+ORANGE = "#FF8C00"
+BLACK = "#1A1A1A"
+WHITE = "#FFFFFF"
+GRAY = "#2B2B2B"
+
+class DevilKingAI(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+
+        self.title("DKS | Hero Org Terminal")
+        self.geometry("600x700")
+        self.configure(fg_color=BLACK)
+
+        # UI Setup
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+
+        # --- Header ---
+        self.header = ctk.CTkLabel(self, text="AI INTERFACE SYSTEM", font=("Orbitron", 20, "bold"), text_color=ORANGE)
+        self.header.grid(row=0, column=0, pady=20)
+
+        # --- API Key Input ---
+        self.api_frame = ctk.CTkFrame(self, fg_color=GRAY, corner_radius=10)
+        self.api_frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        
+        self.api_label = ctk.CTkLabel(self.api_frame, text="CUSTOM API KEY:", text_color=WHITE, font=("Arial", 12, "bold"))
+        self.api_label.pack(side="left", padx=10, pady=5)
+        
+        self.api_entry = ctk.CTkEntry(self.api_frame, placeholder_text="Enter your Key here...", 
+                                      fg_color=BLACK, text_color=ORANGE, border_color=ORANGE, show="*")
+        self.api_entry.pack(side="right", fill="x", expand=True, padx=10, pady=5)
+
+        # --- Chat Display ---
+        self.chat_display = ctk.CTkTextbox(self, fg_color=GRAY, text_color=WHITE, font=("Arial", 14), 
+                                           border_color=ORANGE, border_width=1, corner_radius=10)
+        self.chat_display.grid(row=1, column=0, padx=20, pady=10, sticky="nsew")
+        self.chat_display.configure(state="disabled")
+
+        # --- User Input ---
+        self.input_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.input_frame.grid(row=3, column=0, padx=20, pady=20, sticky="ew")
+        self.input_frame.grid_columnconfigure(0, weight=1)
+
+        self.user_input = ctk.CTkEntry(self.input_frame, placeholder_text="Command here...", 
+                                       fg_color=GRAY, border_color=WHITE, text_color=WHITE)
+        self.user_input.grid(row=0, column=0, sticky="ew", padx=(0, 10))
+        self.user_input.bind("<Return>", lambda event: self.process_request())
+
+        self.send_btn = ctk.CTkButton(self.input_frame, text="EXECUTE", fg_color=ORANGE, 
+                                      hover_color="#CC7000", text_color=BLACK, font=("Arial", 12, "bold"),
+                                      command=self.process_request)
+        self.send_btn.grid(row=0, column=1)
+
+    def log_message(self, sender, message):
+        self.chat_display.configure(state="normal")
+        color = ORANGE if sender == "AI" else WHITE
+        self.chat_display.insert("end", f"{sender}: ", (sender,))
+        self.chat_display.insert("end", f"{message}\n\n")
+        self.chat_display.configure(state="disabled")
+        self.chat_display.see("end")
+
+    def process_request(self):
+        prompt = self.user_input.get()
+        api_key = self.api_entry.get()
+
+        if not prompt: return
+        if not api_key:
+            self.log_message("SYSTEM", "⚠️ Error: Custom API Key is missing.")
+            return
+
+        self.log_message("USER", prompt)
+        self.user_input.delete(0, "end")
+        
+        # Placeholder for API Logic (e.g., OpenAI or Anthropic)
+        # You would insert your request logic here using 'api_key'
+        self.log_message("AI", "Interface synchronized. System ready for deployment, Boss. 🟠")
+
+if __name__ == "__main__":
+    app = DevilKingAI()
+    app.mainloop()
